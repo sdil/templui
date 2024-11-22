@@ -6,11 +6,13 @@ import (
 )
 
 type SignupFormData struct {
+	About             string   `json:"about"`
 	Email             string   `json:"email"`
 	Role              string   `json:"role"`
 	NotificationTypes []string `json:"notificationTypes"`
 	Newsletter        bool     `json:"newsletter"`
 	Terms             bool     `json:"terms"`
+	Date              string   `json:"date"`
 }
 
 func (d SignupFormData) ToJSON() string {
@@ -25,7 +27,7 @@ templ FormShowcase() {
 		Action: "/api/signup",
 		InitialData: SignupFormData{
 			Email:             "",
-			Role:              "",
+			Role:              "admin",
 			NotificationTypes: []string{},
 			Newsletter:        true,
 			Terms:             true,
@@ -33,6 +35,28 @@ templ FormShowcase() {
 		Debug: true,
 	}) {
 		<h2 class="text-2xl font-bold">Account Settings</h2>
+		// Textarea
+		<div class="space-y-2">
+			<label class="text-sm font-medium">About</label>
+			@components.Textarea(components.TextareaProps{
+				ID:          "about",
+				Name:        "about",
+				Placeholder: "Type your message here.",
+				Attributes:  templ.Attributes{"x-model": "formData.about"},
+			})
+		</div>
+		// Date
+		<div class="space-y-2">
+			<label class="text-sm font-medium">Date</label>
+			@components.Datepicker(components.DatepickerProps{
+				ID:          "my-datepicker",
+				Name:        "selected-date",
+				Placeholder: "Select a date",
+				Format:      "M d, Y",
+				Class:       "w-full",
+				Attributes:  templ.Attributes{"x-model": "formData.date"},
+			})
+		</div>
 		// Email Input
 		<div class="space-y-2">
 			<label class="text-sm font-medium">Email</label>
@@ -50,12 +74,12 @@ templ FormShowcase() {
 				ID:          "role",
 				Name:        "role",
 				Placeholder: "Select role",
-				Value:       "formData.role",
 				Options: []components.SelectOption{
 					{Label: "User", Value: "user"},
 					{Label: "Admin", Value: "admin"},
-					{Label: "Editor", Value: "editor", Disabled: "true"},
+					{Label: "Editor", Value: "editor"},
 				},
+				Attributes: templ.Attributes{"x-model": "formData.role"},
 			})
 		</div>
 		// Notification Types (Multiple Checkboxes)
@@ -98,30 +122,28 @@ templ FormShowcase() {
 		// Marketing Consent (Radio)
 		<div class="space-y-2">
 			<label class="text-sm font-medium">Marketing Preferences</label>
-			@components.RadioGroup(components.RadioGroupProps{
-				Name:  "marketing",
-				Value: "formData.marketingConsent",
-			}) {
-				<div class="space-y-2">
-					@components.RadioGroupItem(components.RadioGroupItemProps{
-						Value:      "all",
-						ID:         "marketing-all",
-						Label:      templ.Raw("All marketing emails"),
-						Attributes: templ.Attributes{"x-model": "formData.marketingConsent"},
-					})
-					@components.RadioGroupItem(components.RadioGroupItemProps{
-						Value:      "selected",
-						ID:         "marketing-selected",
-						Label:      templ.Raw("Only selected emails"),
-						Attributes: templ.Attributes{"x-model": "formData.marketingConsent"},
-					})
-					@components.RadioGroupItem(components.RadioGroupItemProps{
-						Value:      "none",
-						ID:         "marketing-none",
-						Label:      templ.Raw("No marketing emails"),
-						Attributes: templ.Attributes{"x-model": "formData.marketingConsent"},
-					})
-				</div>
+			@components.RadioGroup(components.RadioGroupProps{Name: "contact-method"}) {
+				@components.RadioGroupItem(components.RadioGroupItemProps{
+					Value:      "all",
+					ID:         "marketing-all",
+					Name:       "marketing",
+					Label:      templ.Raw("All marketing emails"),
+					Attributes: templ.Attributes{"x-model": "formData.marketingConsent"},
+				})
+				@components.RadioGroupItem(components.RadioGroupItemProps{
+					Value:      "selected",
+					ID:         "marketing-selected",
+					Name:       "marketing",
+					Label:      templ.Raw("Only selected emails"),
+					Attributes: templ.Attributes{"x-model": "formData.marketingConsent"},
+				})
+				@components.RadioGroupItem(components.RadioGroupItemProps{
+					Value:      "none",
+					ID:         "marketing-none",
+					Name:       "marketing",
+					Label:      templ.Raw("No marketing emails"),
+					Attributes: templ.Attributes{"x-model": "formData.marketingConsent"},
+				})
 			}
 		</div>
 		// Newsletter Toggle
@@ -130,27 +152,18 @@ templ FormShowcase() {
 				ID:         "newsletter",
 				Name:       "newsletter",
 				LabelRight: "Subscribe to newsletter",
-				Checked:    "formData.newsletter",
 				Attributes: templ.Attributes{
 					"x-model": "formData.newsletter",
 				},
 			})
-			<input
-				x-ref="newsletterz"
-				type="checkbox"
-			/>
-			<div x-text="$refs.newsletterz.checked"></div>
 		</div>
 		// Terms Checkbox
 		<div class="space-y-2">
 			@components.Checkbox(components.CheckboxProps{
-				ID:      "terms",
-				Name:    "terms",
-				Label:   "I accept the terms and conditions",
-				Checked: "formData.terms",
-				// Attributes: templ.Attributes{
-				// 	"x-model": "formData.terms",
-				// },
+				ID:         "terms",
+				Name:       "terms",
+				Label:      "I accept the terms and conditions",
+				Attributes: templ.Attributes{"x-model": "formData.terms"},
 			})
 		</div>
 		// Submit Button
